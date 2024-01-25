@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/test")
-public class DemoRestController {
+public class DemoRESTController {
     // add code for the "/hello" endpoint
 
     @GetMapping("/hello")
