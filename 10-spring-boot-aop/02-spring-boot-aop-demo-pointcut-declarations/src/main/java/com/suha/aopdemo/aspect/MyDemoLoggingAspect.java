@@ -1,36 +1,62 @@
 package com.suha.aopdemo.aspect;
 
+import com.suha.aopdemo.Account;
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Aspect
 @Component
+@Order(2)
 public class MyDemoLoggingAspect {
 
-    @Pointcut("execution(* com.suha.aopdemo.dao.*.*(..))")
-    private void forDaoPackage(){}
+    // add a new advice for @AfterReturning on the findAccounts method
+    @AfterReturning(
+            pointcut = "execution(* com.suha.aopdemo.dao.AccountDAO.findAccounts(..))",
+            returning = "result")
+    public void afterReturningFindAccountsAdvice(JoinPoint theJoinPoint, List<Account> result){
 
-    // create a pointcut for getter methods
-    @Pointcut("execution(* com.suha.aopdemo.dao.*.get*(..))")
-    private void getter(){}
+        // print out which method we are advising on
+        String method = theJoinPoint.getSignature().toShortString();
+        System.out.println("\n=====>>> Executing @AfterReturning on method: " + method);
 
-    // create a pointcut for setter methods
-    @Pointcut("execution(* com.suha.aopdemo.dao.*.set*(..))")
-    private void setter(){}
+        // print out the results of the method call
+        System.out.println("\n=====>>> result is: " + result);
+    }
 
-    // create a pointcut: include package ... exclude getter/setter
-    @Pointcut("forDaoPackage() && !(getter() || setter())")
-    private void forDaoPackageNoGetterSetter(){}
-
-    @Before("forDaoPackageNoGetterSetter()")
-    public void beforeAddAccountAdvice(){
+    @Before("com.suha.aopdemo.aspect.LuvAopExpressions.forDaoPackageNoGetterSetter()")
+    public void beforeAddAccountAdvice(JoinPoint theJoinPoint){
         System.out.println("\n====>>> EXECUTING @Before ADVICE ON addAccount()");
+
+        // display the method signature
+        MethodSignature methodSignature = (MethodSignature) theJoinPoint.getSignature();
+
+        System.out.println("Method: " + methodSignature);
+
+        // display method arguments
+
+        // get args
+        Object[] args = theJoinPoint.getArgs();
+
+        // loop through args
+        for(Object tempArg : args){
+            System.out.println(tempArg);
+
+            if (tempArg instanceof Account){
+
+                // downcast and print Account specific stuff
+                Account theAccount = (Account) tempArg;
+
+                System.out.println("account name: " + theAccount.getName());
+                System.out.println("account level: " + theAccount.getLevel());
+            }
+        }
     }
 
-    @Before("forDaoPackageNoGetterSetter()")
-    public void performApiAnalytics(){
-        System.out.println("=====>>> Performing API analytics");
-    }
 }
